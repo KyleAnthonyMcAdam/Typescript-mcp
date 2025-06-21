@@ -2,28 +2,27 @@
 
 This project is a simple Model Context Protocol (MCP) server built with TypeScript. It is designed to be a starting point for creating your own MCP servers and includes a basic `calculator` tool as an example.
 
-The server uses Express as the transport layer and communicates with clients over HTTP using Server-Sent Events (SSE).
+The server is configured to communicate with a client application (like Cursor) over standard input/output (stdio).
 
 ## Features
 
-- **MCP Server**: Implements the Model Context Protocol standard.
+- **MCP Server**: Implements the Model Context Protocol standard via `stdio`.
 - **Calculator Tool**: A safe `calculator` tool that evaluates mathematical expressions.
 - **TypeScript**: Fully written in TypeScript with strict type checking.
-- **Well-Documented**: Code is documented with JSDoc comments to explain its purpose and usage.
-- **Ready to Run**: Includes npm scripts for easy building, development, and execution.
+- **Well-Documented**: Code is documented, and a full `SETUP.md` is included.
+- **Ready to Run**: Includes npm scripts and a batch file for easy building and execution.
 
 ## Prerequisites
 
-- [Node.js](https://nodejs.org/) (v18 or higher)
-- [npm](https://www.npmjs.com/) (v8 or higher)
+- [Node.js](https://nodejs.org/)
+- [npm](https://www.npmjs.com/)
 
 ## Installation
 
-1.  **Clone the repository (or set up the project):**
+1.  **Clone the repository:**
     ```bash
-    # If you have cloned a repository:
-    # git clone <repository-url>
-    # cd typescript-mcp-server
+    git clone https://github.com/KyleAnthonyMcAdam/Typescript-mcp.git
+    cd Typescript-mcp
     ```
 
 2.  **Install dependencies:**
@@ -34,21 +33,7 @@ The server uses Express as the transport layer and communicates with clients ove
 
 ## Usage
 
-You can run the server in two modes: for development or for production.
-
-### Development Mode
-
-For development, you can run the server using `nodemon`, which will automatically restart the server whenever you make changes to the source code.
-
-```bash
-npm run dev
-```
-
-The server will start on the port specified in your `.env` file, or on port `3333` by default.
-
-### Production Mode
-
-For production, you should first build the TypeScript code into JavaScript, and then run the compiled code.
+For this server to work, you must first build the project.
 
 1.  **Build the project:**
     This command compiles all TypeScript files from the `src` directory into JavaScript files in the `dist` directory.
@@ -56,24 +41,22 @@ For production, you should first build the TypeScript code into JavaScript, and 
     npm run build
     ```
 
-2.  **Start the server:**
-    This command runs the compiled server from the `dist` directory.
-    ```bash
-    npm start
-    ```
+2.  **Run the server:**
+    The server is not meant to be run directly by the user in the terminal. Instead, it should be started by an MCP client application.
 
 ## Connecting with a Client
 
-Once the server is running, you can connect to it using any MCP-compatible client, such as Cursor.
+To connect this server with a client like Cursor, you must configure the client to launch this server. This is typically done in a JSON configuration file.
 
-The server exposes its SSE transport at the following endpoint:
-`http://localhost:3333/sse`
+For detailed instructions on how to set up the project from scratch and configure a client, please see the [SETUP.md](SETUP.md) file.
 
-You can configure your client to connect to this URL. The `calculator` tool will be available for the client to discover and use.
+### Example `run-server.bat`
+
+This project includes a `run-server.bat` file which simplifies the process of running the server from a client on Windows. It ensures that the Node.js server starts with the correct settings.
 
 ### Example: Calling the Calculator Tool
 
-A client can call the `calculator` tool with a request like this:
+Once the client is configured and connected, it can call the `calculator` tool with a request like this:
 
 ```json
 {
