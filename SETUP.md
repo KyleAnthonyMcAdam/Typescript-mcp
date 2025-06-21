@@ -31,10 +31,16 @@ npm init -y
 ```
 
 ### 1.3 Install Dependencies
-You'll need the MCP SDK and TypeScript.
+You'll need the MCP SDK and some helper libraries.
+
+**Production Dependencies:**
 ```bash
-npm install @modelcontextprotocol/sdk zod
-npm install -D typescript @types/node
+npm install @modelcontextprotocol/sdk zod dotenv
+```
+
+**Development Dependencies:**
+```bash
+npm install -D typescript @types/node nodemon ts-node
 ```
 
 ## 2. TypeScript Configuration
@@ -64,87 +70,155 @@ Add the following configuration to `tsconfig.json`:
 ```
 
 ## 3. Create the Server
-Now, let's write the server code.
+Now, let's write the server code. We will use a modular structure to keep the code organized.
 
-### 3.1 Create Source Directory
-Create a `src` directory for your TypeScript source files.
+### 3.1 Create Source Directories
+Create directories for your source files and library helpers.
 ```bash
-mkdir src
+mkdir -p src/lib src/mcp
 ```
 
-### 3.2 Create Server File
-Create a file named `server.ts` inside the `src` directory.
+### 3.2 Create the Logger (`src/lib/logger.ts`)
+This utility will help standardize logging.
+```bash
+touch src/lib/logger.ts
+```
+Add the following code to `src/lib/logger.ts`:
+```typescript
+/**
+ * A simple logger utility for timestamped console messages.
+ * This helps in standardizing the log format across the application,
+ * making it easier to debug and trace operations.
+ */
+const log = (level: 'INFO' | 'ERROR' | 'WARN', message: string, ...optionalParams: unknown[]) => {
+  const timestamp = new Date().toISOString();
+  // Log to stderr to keep stdout clean for MCP communication
+  console.error(`[${timestamp}] [${level}] ${message}`, ...optionalParams);
+};
+
+export const logger = {
+  info: (message: string, ...optionalParams: unknown[]) => {
+    log('INFO', message, ...optionalParams);
+  },
+  error: (message: string, ...optionalParams: unknown[]) => {
+    log('ERROR', message, ...optionalParams);
+  },
+  warn: (message: string, ...optionalParams: unknown[]) => {
+    log('WARN', message, ...optionalParams);
+  },
+};
+```
+
+### 3.3 Create the Tool Definitions (`src/mcp/tools.ts`)
+This is where you will define and register your server's tools.
+```bash
+touch src/mcp/tools.ts
+```
+Add the following code to `src/mcp/tools.ts`:
+```typescript
+/**
+ * This file defines and registers all the tools that the MCP server can use.
+ * Tools are discoverable functions that an AI model can call.
+ */
+import { z } from 'zod';
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { logger } from '../lib/logger.js';
+
+const calculatorInputSchema = {
+  expression: z.string().refine(
+    (expr) => /^[0-9+\-*/().\s]+$/.test(expr),
+    {
+      message: "Expression contains invalid characters. Only numbers, operators (+, -, *, /), parentheses, and spaces are allowed."
+    }
+  ).describe('A mathematical expression to evaluate. Example: "2 * (3 + 4)"'),
+};
+
+const calculatorHandler = async ({ expression }: { expression: string }) => {
+  try {
+    logger.info(`Evaluating expression: ${expression}`);
+    const result = new Function(`return ${expression}`)();
+
+    if (typeof result !== 'number' || !isFinite(result)) {
+      throw new Error('Expression did not resolve to a valid number.');
+    }
+
+    logger.info(`Expression result: ${result}`);
+    return {
+      content: [{ type: 'text' as const, text: `The result is: ${result}` }],
+    };
+  } catch (error: any) {
+    logger.error(`Error evaluating expression: "${expression}"`, error);
+    return {
+      content: [{
+        type: 'text' as const,
+        text: `Invalid mathematical expression: "${expression}". Details: ${error.message}`
+      }],
+      isError: true,
+    };
+  }
+};
+
+export function registerTools(server: McpServer) {
+  server.registerTool(
+    'calculator',
+    {
+      title: 'Simple Calculator',
+      description: 'A safe calculator that can evaluate mathematical expressions.',
+      inputSchema: calculatorInputSchema,
+    },
+    calculatorHandler
+  );
+  logger.info('Registered tool: calculator');
+}
+```
+
+### 3.4 Create the Main Server File (`src/server.ts`)
+This file will tie everything together.
 ```bash
 touch src/server.ts
 ```
-
-### 3.3 Add Server Code
-Add the following code to `src/server.ts`. This is a basic server that exposes a simple "add" tool.
-
+Add the following code to `src/server.ts`:
 ```typescript
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { z } from "zod";
+/**
+ * Main server entry point for the TypeScript MCP Server.
+ */
+import 'dotenv/config'; // Load environment variables from .env file
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { logger } from './lib/logger.js';
+import { registerTools } from './mcp/tools.js';
 
-// Create an MCP server instance
-const server = new McpServer({
-  name: "typescript-simple-mcp",
-  version: "1.0.0",
+const mcpServer = new McpServer({
+  name: 'typescript-mcp-server',
+  version: '1.0.0',
   capabilities: {
-    tools: {},
+    tools: {
+      listChanged: true,
+    },
   },
 });
 
-// Add a simple calculator tool
-server.tool(
-  "calculator",
-  "A safe calculator that can evaluate mathematical expressions.",
-  {
-    expression: z.string().describe("A mathematical expression to evaluate. Example: \"2 * (3 + 4)\""),
-  },
-  async ({ expression }) => {
-    try {
-        // A simple, safer way to evaluate math expressions.
-        const result = new Function('return ' + expression)();
-        return {
-            content: [{
-                type: 'text',
-                text: `The result is: ${result}`
-            }],
-        };
-    } catch (error) {
-        return {
-            content: [{
-                type: 'text',
-                text: "Invalid expression"
-            }],
-            isError: true
-        };
-    }
-  }
-);
+logger.info('Registering tools...');
+registerTools(mcpServer);
+logger.info('All tools registered.');
 
-
-async function runServer() {
-  console.error("Registering tools...");
-  // The 'error' here is intentional. We're logging to stderr
-  // to avoid polluting stdout, which is used for MCP communication.
+async function startStdioServer() {
   const transport = new StdioServerTransport();
-  await server.connect(transport);
-  console.error("All tools registered.");
-  console.error("🔌 MCP transport starting via stdio.");
+  logger.info('🔌 MCP transport starting via stdio.');
+  await mcpServer.connect(transport);
+  logger.info('stdio transport connection closed.');
 }
 
-runServer().catch((error) => {
-  console.error("Fatal error in main():", error);
+startStdioServer().catch((error) => {
+  logger.error('Failed to start server:', error);
   process.exit(1);
 });
 ```
 
 ## 4. Build and Run
 
-### 4.1 Add Build Script to `package.json`
-Open your `package.json` file and add a `build` script and a `start` script. Also set the `main` entry point.
+### 4.1 Add Scripts to `package.json`
+Open your `package.json` file and set the `main` entry point and add the `build`, `start`, and `dev` scripts.
 
 ```json
 {
@@ -154,18 +228,23 @@ Open your `package.json` file and add a `build` script and a `start` script. Als
   "main": "dist/server.js",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/server.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.13.0",
-    "zod": "^3.23.8"
+    "dotenv": "^16.5.0",
+    "zod": "^3.25.67"
   },
   "devDependencies": {
-    "@types/node": "^20.12.12",
-    "typescript": "^5.4.5"
+    "@types/node": "^24.0.3",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
   }
 }
 ```
