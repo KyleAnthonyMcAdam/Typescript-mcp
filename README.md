@@ -33,7 +33,17 @@ The server is configured to communicate with a client application (like Cursor) 
 
 ## Usage
 
-For this server to work, you must first build the project.
+### Development Mode
+
+For development, you can run the server using `nodemon`, which will automatically restart the server whenever you make changes to the source code. This is useful for testing tools without needing to connect to a full client.
+
+```bash
+npm run dev
+```
+
+### Production / Client Mode
+
+For the server to be used by a client application (like Cursor), you must first build the project.
 
 1.  **Build the project:**
     This command compiles all TypeScript files from the `src` directory into JavaScript files in the `dist` directory.
@@ -41,12 +51,14 @@ For this server to work, you must first build the project.
     npm run build
     ```
 
-2.  **Run the server:**
-    The server is not meant to be run directly by the user in the terminal. Instead, it should be started by an MCP client application.
+2.  **Run the server from a client:**
+    The server is not meant to be run directly by the user in the terminal. Instead, it must be started by an MCP client application.
 
 ## Connecting with a Client
 
-To connect this server with a client like Cursor, you must configure the client to launch this server. This is typically done in a JSON configuration file.
+To connect this server with a client like Cursor, you must add it to the client's configuration file (e.g., a global `mcp.json`). This configuration tells the client how to launch your server.
+
+**Crucially, the `command` or `args` in the configuration must use an absolute path to the launch script or server file.** This path will be different on every machine.
 
 For detailed instructions on how to set up the project from scratch and configure a client, please see the [SETUP.md](SETUP.md) file.
 
