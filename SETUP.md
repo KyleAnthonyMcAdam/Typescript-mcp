@@ -13,6 +13,80 @@ node --version
 npm --version
 ```
 
+## 🟢 Active Tools (2025-07)
+
+After setup, only the following tools will be available in the MCP interface:
+
+---
+
+### 1. workspace_intelligence (Super-Tool)
+- **Description:** Workspace discovery, listing, analysis, and wizard mode for guided selection.
+- **Modes:** list, analyze, discover, wizard
+- **Example:**
+  ```json
+  { "mode": "list" }
+  ```
+
+---
+
+### 2. finder
+- **Description:** Interactive file system navigation and exploration.
+- **Actions:** list, cd, up, read, info
+- **Example:**
+  ```json
+  { "action": "list" }
+  ```
+
+---
+
+### 3. cursor_data_exporter
+- **Description:** Export prompts, generations, summaries, and analytics from a workspace.
+- **Modes:** prompts, generations, all, summary, analysis
+- **Example:**
+  ```json
+  { "mode": "prompts", "workspaceId": "abc123" }
+  ```
+
+All other tools are currently stubbed or not registered.
+
+---
+
+## ⚡ Quick Start
+
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+2. Build the project:
+   ```bash
+   npm run build
+   ```
+3. Start the server:
+   ```bash
+   npm start
+   ```
+
+---
+
+## 📝 Tool Registration
+
+- Only working tools are registered by default.
+- To enable more tools, edit `src/server.ts` and `src/cursor/tools/index.ts`.
+- The data export tool is now registered as `cursor_data_exporter`.
+
+---
+
+## ❌ Stubbed/Inactive Tools
+
+- database_query
+- conversation_intelligence
+- session_manager
+- workspace_discovery
+- temporal_intelligence
+- workspace_orchestrator
+
+These are not available until implemented.
+
 ## 1. Project Setup
 
 First, you need to set up your project structure and install the necessary dependencies.
@@ -124,51 +198,9 @@ import { z } from 'zod';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { logger } from '../lib/logger.js';
 
-const calculatorInputSchema = {
-  expression: z.string().refine(
-    (expr) => /^[0-9+\-*/().\s]+$/.test(expr),
-    {
-      message: "Expression contains invalid characters. Only numbers, operators (+, -, *, /), parentheses, and spaces are allowed."
-    }
-  ).describe('A mathematical expression to evaluate. Example: "2 * (3 + 4)"'),
-};
-
-const calculatorHandler = async ({ expression }: { expression: string }) => {
-  try {
-    logger.info(`Evaluating expression: ${expression}`);
-    const result = new Function(`return ${expression}`)();
-
-    if (typeof result !== 'number' || !isFinite(result)) {
-      throw new Error('Expression did not resolve to a valid number.');
-    }
-
-    logger.info(`Expression result: ${result}`);
-    return {
-      content: [{ type: 'text' as const, text: `The result is: ${result}` }],
-    };
-  } catch (error: any) {
-    logger.error(`Error evaluating expression: "${expression}"`, error);
-    return {
-      content: [{
-        type: 'text' as const,
-        text: `Invalid mathematical expression: "${expression}". Details: ${error.message}`
-      }],
-      isError: true,
-    };
-  }
-};
-
 export function registerTools(server: McpServer) {
-  server.registerTool(
-    'calculator',
-    {
-      title: 'Simple Calculator',
-      description: 'A safe calculator that can evaluate mathematical expressions.',
-      inputSchema: calculatorInputSchema,
-    },
-    calculatorHandler
-  );
-  logger.info('Registered tool: calculator');
+  // No basic tools registered in this template
+  logger.info('No basic tools registered.');
 }
 ```
 
@@ -292,6 +324,6 @@ Again, make sure to use the correct absolute path.
 2. When a tool from your server is needed, the client executes the `command` specified in the `mcp.json`.
 3. The command starts your Node.js server.
 4. The server communicates with the client over standard input/output (`stdio`).
-5. The server listens for requests, executes the appropriate tool (like the calculator), and sends the result back to the client.
+5. The server listens for requests, executes the appropriate tool, and sends the result back to the client.
 
 That's it! You now have a working TypeScript MCP server. 

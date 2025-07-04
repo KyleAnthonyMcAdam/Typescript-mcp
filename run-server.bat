@@ -1,4 +1,4 @@
-@echo off
+`@echo off
 setlocal
 
 REM Set the transport to 'stdio' so the server communicates over standard I/O.

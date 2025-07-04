@@ -1,0 +1,30 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReadChatLogs", "db_templates\ReadChatLogs.csproj", "{01A7B58E-5263-8B4C-F14F-606F5A7CF01E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestChatLogs", "db_templates\TestChatLogs.csproj", "{DD0DAA10-502E-4BA7-E6C5-7CCD56A3B734}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{01A7B58E-5263-8B4C-F14F-606F5A7CF01E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01A7B58E-5263-8B4C-F14F-606F5A7CF01E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01A7B58E-5263-8B4C-F14F-606F5A7CF01E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01A7B58E-5263-8B4C-F14F-606F5A7CF01E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD0DAA10-502E-4BA7-E6C5-7CCD56A3B734}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD0DAA10-502E-4BA7-E6C5-7CCD56A3B734}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD0DAA10-502E-4BA7-E6C5-7CCD56A3B734}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD0DAA10-502E-4BA7-E6C5-7CCD56A3B734}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2E103A33-8CFD-4F9E-BAC8-55F36AFD935B}
+	EndGlobalSection
+EndGlobal

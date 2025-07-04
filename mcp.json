@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "Cursor DB MCP TS": {
+      "command": "node",
+      "args": ["./dist/index.js"]
+    }
+  }
+} 
